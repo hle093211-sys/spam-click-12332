@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Click Chiến - Cloud Edition</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <title>Click Chiến - Final God Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -22,11 +20,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .noselect {
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
         body {
             background-color: var(--bg-color);
             background-image: 
@@ -41,6 +34,8 @@
             height: 100vh;
             overflow: hidden;
             overscroll-behavior-y: contain;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .shake {
@@ -56,11 +51,11 @@
         }
 
         .glass-panel {
-            background: rgba(11, 15, 25, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 243, 255, 0.3);
-            box-shadow: 0 0 25px rgba(0, 243, 255, 0.15);
-            border-radius: 15px;
+            background: rgba(11, 15, 25, 0.9);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+            border-radius: 16px;
             padding: 30px;
             text-align: center;
             width: 400px;
@@ -80,7 +75,7 @@
             width: 100%;
             padding: 15px;
             margin: 10px 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             border: 2px solid var(--neon-blue);
             color: #fff;
             border-radius: 8px;
@@ -97,7 +92,7 @@
 
         .btn {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             margin: 10px 0;
             font-size: 1.2rem;
             font-weight: 900;
@@ -109,7 +104,7 @@
         }
 
         .btn-blue {
-            background: rgba(0, 243, 255, 0.1);
+            background: rgba(0, 243, 255, 0.15);
             color: var(--neon-blue);
             border: 2px solid var(--neon-blue);
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.4) inset;
@@ -118,7 +113,7 @@
         .btn-blue:active { background: var(--neon-blue); color: #000; transform: scale(0.95); }
 
         .btn-pink {
-            background: rgba(255, 0, 60, 0.1);
+            background: rgba(255, 0, 60, 0.15);
             color: var(--neon-pink);
             border: 2px solid var(--neon-pink);
             box-shadow: 0 0 15px rgba(255, 0, 60, 0.4) inset;
@@ -176,7 +171,6 @@
             text-shadow: 0 0 40px var(--neon-pink);
             z-index: 100;
             pointer-events: none;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-align: center;
             width: 100%;
         }
@@ -215,30 +209,25 @@
             0% { opacity: 1; transform: translateY(0) scale(1.5); }
             100% { opacity: 0; transform: translateY(-80px) scale(1); }
         }
-
-        @keyframes popIn {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
     </style>
 </head>
-<body class="noselect">
+<body>
 
     <div id="menu-screen" class="glass-panel">
         <h1>CLICK CHIẾN</h1>
-        <p style="margin-bottom: 25px; color: var(--neon-blue); font-weight: bold;">[ CLOUD EDITION ]</p>
-        <button type="button" class="btn btn-blue" onclick="createRoom()">Tạo Phòng</button>
+        <p style="margin-bottom: 25px; color: var(--neon-blue); font-weight: bold;">[ BẢN HOÀN HẢO 100% ]</p>
+        <button type="button" class="btn btn-blue" onclick="createRoom()">Tạo Phòng Nhanh</button>
         <div style="margin: 20px 0; color: rgba(255,255,255,0.5);">— HOẶC —</div>
         <input type="text" id="join-id" placeholder="Nhập mã phòng..." autocomplete="off">
         <button type="button" class="btn btn-pink" onclick="joinRoom()">Vào Phòng</button>
-        <div id="loading" style="margin-top:15px; color: #ff0; display:none; font-weight: bold;">Đang kết nối Cloud...</div>
+        <div id="loading" style="margin-top:15px; color: #ff0; display:none; font-weight: bold;">Đang xử lý kết nối...</div>
     </div>
 
     <div id="lobby-screen" class="glass-panel hidden">
-        <h2 style="color: var(--neon-blue); margin-bottom: 15px;">MÃ PHÒNG</h2>
+        <h2 style="color: var(--neon-blue); margin-bottom: 15px;">MÃ PHÒNG CỦA BẠN</h2>
         <input type="text" id="room-id-display" readonly onclick="this.select()">
-        <p style="margin-top: 15px; font-size: 1rem; color: #ccc;">Gửi mã này cho máy kia!</p>
-        <div style="margin-top: 25px; color: #fff; font-size: 1.1rem; animation: pulse 1s infinite;">Đang đợi máy kia vào phòng...</div>
+        <p style="margin-top: 15px; font-size: 1rem; color: #ccc;">Đưa mã này cho máy kia nhập vào!</p>
+        <div style="margin-top: 25px; color: #fff; font-size: 1.1rem;">Đang đợi máy kia vào trận...</div>
     </div>
 
     <div id="game-screen" class="hidden">
@@ -258,21 +247,19 @@
 
     <div id="overlay-msg" class="hidden"></div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/trystero/0.19.2/trystero-torrent.min.js"></script>
     <script>
-        // Cấu hình Firebase công cộng dùng chung siêu mượt
-        const firebaseConfig = {
-            databaseURL: "https://click-chien-default-rtdb.firebaseio.com/"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        let roomId = "";
-        let myRole = ""; // 'host' hoặc 'guest'
+        const config = { appId: 'click-chien-master-v1' };
+        const roomName = 'room_' + Math.floor(1000 + Math.random() * 9000);
+        
+        let room = null;
+        let sendClickAction = null;
+        let getClickAction = null;
         let myScore = 0;
         let enemyScore = 0;
         let gameTime = 10;
         let gameInterval = null;
-        let roomRef = null;
+        let isStarted = false;
 
         const screens = {
             menu: document.getElementById('menu-screen'),
@@ -289,72 +276,60 @@
             if(dur) setTimeout(() => overlay.classList.add('hidden'), dur);
         }
 
-        // TẠO PHÒNG TRÊN CLOUD
+        function initRoom(customRoomId) {
+            const trysteroRoom = customRoomId || roomName;
+            room = joinRoom(config, trysteroRoom);
+
+            [sendClickAction, getClickAction] = room.makeAction('click_action');
+            
+            room.onPeerJoin(peerId => {
+                showOverlay("ĐỐI THỦ ĐÃ VÀO!", 1000);
+                setTimeout(() => {
+                    startMatch();
+                }, 1200);
+            });
+
+            getClickAction((data, peerId) => {
+                enemyScore = data.score;
+                document.getElementById('enemy-score').textContent = enemyScore;
+            });
+        }
+
         function createRoom() {
             loading.style.display = 'block';
-            roomId = Math.floor(100000 + Math.random() * 900000).toString();
-            myRole = 'host';
-            roomRef = db.ref('rooms/' + roomId);
-
-            roomRef.set({
-                status: 'waiting',
-                hostScore: 0,
-                guestScore: 0
-            }).then(() => {
+            let code = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            setTimeout(() => {
                 loading.style.display = 'none';
-                document.getElementById('room-id-display').value = roomId;
+                document.getElementById('room-id-display').value = code;
                 screens.menu.classList.add('hidden');
                 screens.lobby.classList.remove('hidden');
-
-                // Lắng nghe khi có khách vào phòng
-                roomRef.on('value', (snapshot) => {
-                    let data = snapshot.val();
-                    if (!data) return;
-                    enemyScore = data.guestScore || 0;
-                    document.getElementById('enemy-score').textContent = enemyScore;
-
-                    if (data.status === 'playing' && screens.game.classList.contains('hidden')) {
-                        screens.lobby.classList.add('hidden');
-                        screens.game.classList.remove('hidden');
-                        startMatch();
-                    }
-                });
-            });
+                initRoom(code);
+            }, 500);
         }
 
-        // VÀO PHÒNG TỪ MÁY KHÁC
-        function joinRoom() {
-            roomId = document.getElementById('join-id').value.trim();
-            if(!roomId) return alert("Nhập mã phòng vào chứ bạn!");
-            myRole = 'guest';
-            roomRef = db.ref('rooms/' + roomId);
+        function joinRoomBtn() {
+            const code = document.getElementById('join-id').value.trim();
+            if(!code) return alert("Vui lòng nhập mã phòng!");
+
             loading.style.display = 'block';
-
-            roomRef.once('value', (snapshot) => {
+            setTimeout(() => {
                 loading.style.display = 'none';
-                if(snapshot.exists()) {
-                    // Cập nhật trạng thái bắt đầu chơi
-                    roomRef.update({ status: 'playing' });
-                    screens.menu.classList.add('hidden');
-                    screens.game.classList.remove('hidden');
-                    
-                    // Lắng nghe điểm của host
-                    roomRef.on('value', (snap) => {
-                        let data = snap.val();
-                        if(data) {
-                            enemyScore = data.hostScore || 0;
-                            document.getElementById('enemy-score').textContent = enemyScore;
-                        }
-                    });
-
-                    startMatch();
-                } else {
-                    alert("Không tìm thấy phòng này! Kiểm tra lại mã xem.");
-                }
-            });
+                initRoom(code);
+                screens.menu.classList.add('hidden');
+                screens.game.classList.remove('hidden');
+                startMatch();
+            }, 800);
         }
+
+        // Gán sự kiện vào nút Vào Phòng
+        document.querySelector('.btn-pink').setAttribute('onclick', 'joinRoomBtn()');
 
         function startMatch() {
+            screens.menu.classList.add('hidden');
+            screens.lobby.classList.add('hidden');
+            screens.game.classList.remove('hidden');
+
             let count = 3;
             document.getElementById('timer').textContent = "SẴN SÀNG";
             showOverlay("SẴN SÀNG!", 1000);
@@ -372,6 +347,7 @@
         }
 
         function runGamePlay() {
+            isStarted = true;
             spamBtn.style.display = 'block';
             myScore = 0; enemyScore = 0; gameTime = 10.0;
             document.getElementById('my-score').textContent = myScore;
@@ -385,17 +361,10 @@
                     clearInterval(gameInterval);
                     timerEl.textContent = "0.0";
                     spamBtn.style.display = 'none';
+                    isStarted = false;
                     endGame();
                 }
             }, 100);
-        }
-
-        function updateCloudScore() {
-            if (!roomRef) return;
-            let updateData = {};
-            if (myRole === 'host') updateData.hostScore = myScore;
-            else updateData.guestScore = myScore;
-            roomRef.update(updateData);
         }
 
         function endGame() {
@@ -431,11 +400,14 @@
 
         function handleSpam(e) {
             if (e.type === 'touchstart') e.preventDefault();
-            if (gameTime <= 0) return;
+            if (!isStarted || gameTime <= 0) return;
             
             myScore++;
             document.getElementById('my-score').textContent = myScore;
-            updateCloudScore(); // Gửi điểm lên cloud ngay lập tức
+            
+            if (sendClickAction) {
+                sendClickAction({ score: myScore });
+            }
 
             let x = e.clientX || (e.touches && e.touches[0].clientX) || window.innerWidth / 2;
             let y = e.clientY || (e.touches && e.touches[0].clientY) || window.innerHeight / 2;
