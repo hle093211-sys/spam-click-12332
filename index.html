@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Chiến - Trận Chiến 10 Giây</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff003c;
+            --bg-color: #0b0f19;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: rgba(11, 15, 25, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            width: 400px;
+            max-width: 90%;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            border-radius: 5px;
+            outline: none;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        input:focus {
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        .btn-blue {
+            background: transparent;
+            color: var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5) inset, 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        .btn-blue:hover {
+            background: var(--neon-blue);
+            color: black;
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        .btn-pink {
+            background: transparent;
+            color: var(--neon-pink);
+            border: 2px solid var(--neon-pink);
+            box-shadow: 0 0 10px rgba(255, 0, 60, 0.5) inset, 0 0 10px rgba(255, 0, 60, 0.5);
+        }
+
+        .btn-pink:hover {
+            background: var(--neon-pink);
+            color: white;
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Game Screen Layout */
+        #game-screen {
+            width: 90%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .player-card {
+            width: 45%;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .my-card {
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue) inset;
+        }
+
+        .enemy-card {
+            border: 2px solid var(--neon-pink);
+            box-shadow: 0 0 15px var(--neon-pink) inset;
+        }
+
+        .score {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-top: 10px;
+        }
+
+        #timer {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 20px #fff;
+            margin: 20px 0;
+        }
+
+        #spam-btn {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            font-size: 2rem;
+            display: none; /* Ẩn cho đến khi bắt đầu */
+        }
+
+        #overlay-msg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 6rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 30px var(--neon-pink);
+            z-index: 100;
+            pointer-events: none;
+            animation: popIn 0.5s ease-out;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Floating Click Effect */
+        .float-text {
+            position: absolute;
+            color: var(--neon-blue);
+            font-size: 1.5rem;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 0.8s forwards;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            80% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen" class="glass-panel">
+        <h1>CLICK CHIẾN</h1>
+        <p style="margin-bottom: 20px; color: #aaa;">Cuộc chiến 10 giây tốc độ tay</p>
+        <button class="btn btn-blue" onclick="createRoom()">Tạo Phòng Mới</button>
+        <div style="margin: 15px 0;">hoặc</div>
+        <input type="text" id="join-id" placeholder="Nhập mã phòng của bạn bè...">
+        <button class="btn btn-pink" onclick="joinRoom()">Vào Phòng</button>
+        <div id="loading" style="margin-top:10px; color: #ff0; display:none;">Đang kết nối...</div>
+    </div>
+
+    <div id="lobby-screen" class="glass-panel hidden">
+        <h1>MÃ PHÒNG CỦA BẠN</h1>
+        <input type="text" id="room-id-display" readonly onclick="this.select()">
+        <p style="margin-bottom: 20px; font-size: 0.9rem;">Copy mã này gửi cho đối thủ. Nhấn vào mã để copy!</p>
+        <div class="loader" style="color: var(--neon-blue); font-weight: bold; animation: pulse 1.5s infinite;">Đang chờ đối thủ vào phòng...</div>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div class="scoreboard">
+            <div class="glass-panel player-card my-card">
+                <h3>BẠN</h3>
+                <div class="score" id="my-score">0</div>
+            </div>
+            <div class="glass-panel player-card enemy-card">
+                <h3>ĐỐI THỦ</h3>
+                <div class="score" id="enemy-score">0</div>
+            </div>
+        </div>
+        
+        <div id="timer">10.0</div>
+        
+        <button id="spam-btn" class="btn btn-blue" onmousedown="clickSpam(event)">BẤM!!</button>
+    </div>
+
+    <div id="overlay-msg" class="hidden"></div>
+
+    <script>
+        let peer = null;
+        let conn = null;
+        let myScore = 0;
+        let enemyScore = 0;
+        let gameTime = 10;
+        let timerInterval = null;
+        let isHost = false;
+
+        const screens = {
+            menu: document.getElementById('menu-screen'),
+            lobby: document.getElementById('lobby-screen'),
+            game: document.getElementById('game-screen')
+        };
+        const overlay = document.getElementById('overlay-msg');
+        const spamBtn = document.getElementById('spam-btn');
+        const loading = document.getElementById('loading');
+
+        function switchScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+        }
+
+        function showOverlay(msg, duration) {
+            overlay.textContent = msg;
+            overlay.classList.remove('hidden');
+            if (duration) {
+                setTimeout(() => { overlay.classList.add('hidden'); }, duration);
+            }
+        }
+
+        // 1. TẠO PHÒNG
+        function createRoom() {
+            loading.style.display = 'block';
+            peer = new Peer(); // Tạo ID ngẫu nhiên
+            isHost = true;
+
+            peer.on('open', (id) => {
+                loading.style.display = 'none';
+                document.getElementById('room-id-display').value = id;
+                switchScreen('lobby');
+            });
+
+            // Chờ người khác kết nối vào
+            peer.on('connection', (connection) => {
+                conn = connection;
+                setupConnection();
+            });
+        }
+
+        // 2. VÀO PHÒNG
+        function joinRoom() {
+            const roomId = document.getElementById('join-id').value.trim();
+            if (!roomId) {
+                alert("Vui lòng nhập mã phòng!");
+                return;
+            }
+            loading.style.display = 'block';
+            peer = new Peer();
+            
+            peer.on('open', () => {
+                conn = peer.connect(roomId);
+                setupConnection();
+            });
+        }
+
+        // 3. THIẾT LẬP KẾT NỐI VÀ LẮNG NGHE DỮ LIỆU P2P
+        function setupConnection() {
+            conn.on('open', () => {
+                // Đã kết nối thành công, chuẩn bị vào game
+                switchScreen('game');
+                
+                if (isHost) {
+                    // Chủ phòng bắt đầu đếm ngược cho cả 2
+                    setTimeout(() => {
+                        conn.send({ type: 'START_COUNTDOWN' });
+                        startCountdown();
+                    }, 1000);
+                }
+            });
+
+            conn.on('data', (data) => {
+                if (data.type === 'START_COUNTDOWN') {
+                    startCountdown();
+                } else if (data.type === 'CLICK') {
+                    enemyScore = data.score;
+                    document.getElementById('enemy-score').textContent = enemyScore;
+                }
+            });
+
+            conn.on('close', () => {
+                alert("Đối thủ đã ngắt kết nối!");
+                location.reload();
+            });
+        }
+
+        // 4. LOGIC ĐẾM NGƯỢC 3 2 1
+        function startCountdown() {
+            let count = 3;
+            document.getElementById('timer').textContent = "SẴN SÀNG";
+            
+            const countInterval = setInterval(() => {
+                if (count > 0) {
+                    showOverlay(count, 800);
+                    count--;
+                } else {
+                    clearInterval(countInterval);
+                    showOverlay("BẮT ĐẦU!", 800);
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        // 5. BẮT ĐẦU SPAM CLICK
+        function startGame() {
+            spamBtn.style.display = 'block';
+            myScore = 0;
+            enemyScore = 0;
+            gameTime = 10.0;
+            
+            document.getElementById('my-score').textContent = myScore;
+            document.getElementById('enemy-score').textContent = enemyScore;
+
+            const timerEl = document.getElementById('timer');
+            
+            timerInterval = setInterval(() => {
+                gameTime -= 0.1;
+                timerEl.textContent = gameTime.toFixed(1);
+
+                if (gameTime <= 0) {
+                    clearInterval(timerInterval);
+                    timerEl.textContent = "0.0";
+                    endGame();
+                }
+            }, 100);
+        }
+
+        // Xử lý sự kiện click tạo hiệu ứng và gửi data
+        function clickSpam(e) {
+            if (gameTime <= 0) return;
+            
+            myScore++;
+            document.getElementById('my-score').textContent = myScore;
+            
+            // Gửi điểm số cho đối thủ ngay lập tức
+            conn.send({ type: 'CLICK', score: myScore });
+
+            // Hiệu ứng "Vip Pro Max" - số +1 bay lên tại vị trí click
+            const floatText = document.createElement('div');
+            floatText.classList.add('float-text');
+            floatText.textContent = '+1';
+            floatText.style.left = (e.clientX - 10) + 'px';
+            floatText.style.top = (e.clientY - 20) + 'px';
+            document.body.appendChild(floatText);
+
+            // Xóa element sau khi animation kết thúc
+            setTimeout(() => {
+                floatText.remove();
+            }, 800);
+        }
+
+        // 6. KẾT THÚC GAME VÀ XẾP HẠNG
+        function endGame() {
+            spamBtn.style.display = 'none';
+            
+            setTimeout(() => {
+                if (myScore > enemyScore) {
+                    showOverlay("BẠN THẮNG! 🏆", 0); // 0 = Không tự ẩn
+                    overlay.style.color = "var(--neon-blue)";
+                } else if (myScore < enemyScore) {
+                    showOverlay("BẠN THUA! 💀", 0);
+                    overlay.style.color = "var(--neon-pink)";
+                } else {
+                    showOverlay("HÒA NHAU! 🤝", 0);
+                    overlay.style.color = "#fff";
+                }
+
+                // Reset game sau 5 giây (Tự động tải lại trang)
+                setTimeout(() => {
+                    location.reload();
+                }, 5000);
+            }, 500);
+        }
+    </script>
+</body>
+</html>
