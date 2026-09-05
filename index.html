@@ -59,17 +59,20 @@
         }
 
         input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            border-radius: 5px;
-            outline: none;
-            font-size: 1rem;
-            text-align: center;
-        }
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    border-radius: 5px;
+    outline: none;
+    font-size: 1rem;
+    text-align: center;
+    /* THÊM 2 DÒNG NÀY ĐỂ MỞ KHÓA BẤM TRÊN ĐIỆN THOẠI */
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}
 
         input:focus {
             box-shadow: 0 0 15px var(--neon-blue);
@@ -245,7 +248,7 @@
         
         <div id="timer">10.0</div>
         
-        <button id="spam-btn" class="btn btn-blue" onmousedown="clickSpam(event)">BẤM!!</button>
+        <button id="spam-btn" class="btn btn-blue" <button id="spam-btn" class="btn btn-blue" onpointerdown="clickSpam(event)">BẤM!!</button>
     </div>
 
     <div id="overlay-msg" class="hidden"></div>
@@ -284,13 +287,34 @@
         // 1. TẠO PHÒNG
         function createRoom() {
             loading.style.display = 'block';
-            peer = new Peer({
+            const peerConfig = {
+    debug: 2, // Hiển thị nhật ký lỗi chi tiết trong Console
     config: {
-        'iceServers': [
+        iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
+            { urls: 'stun:stun1.l.google.com:19302' },
+            // Bổ sung TURN Server miễn phí để xuyên qua tường lửa CGNAT / 4G
+            {
+                urls: 'turn:openrelay.metered.ca:80',
+                username: 'openrelay',
+                credential: 'openrelay'
+            },
+            {
+                urls: 'turn:openrelay.metered.ca:443',
+                username: 'openrelay',
+                credential: 'openrelay'
+            }
         ]
     }
+};
+
+// Sử dụng peerConfig khi tạo Peer
+peer = new Peer(peerConfig);
+
+// Bộ lắng nghe lỗi kết nối để thông báo ngay lập tức
+peer.on('error', (err) => {
+    alert('Lỗi PeerJS: ' + err.type + ' - ' + err.message);
+    loading.style.display = 'none';
 });
 
             // Chờ người khác kết nối vào
@@ -308,13 +332,34 @@
                 return;
             }
             loading.style.display = 'block';
-            peer = new Peer({
+            const peerConfig = {
+    debug: 2, // Hiển thị nhật ký lỗi chi tiết trong Console
     config: {
-        'iceServers': [
+        iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
+            { urls: 'stun:stun1.l.google.com:19302' },
+            // Bổ sung TURN Server miễn phí để xuyên qua tường lửa CGNAT / 4G
+            {
+                urls: 'turn:openrelay.metered.ca:80',
+                username: 'openrelay',
+                credential: 'openrelay'
+            },
+            {
+                urls: 'turn:openrelay.metered.ca:443',
+                username: 'openrelay',
+                credential: 'openrelay'
+            }
         ]
     }
+};
+
+// Sử dụng peerConfig khi tạo Peer
+peer = new Peer(peerConfig);
+
+// Bộ lắng nghe lỗi kết nối để thông báo ngay lập tức
+peer.on('error', (err) => {
+    alert('Lỗi PeerJS: ' + err.type + ' - ' + err.message);
+    loading.style.display = 'none';
 });
         }
 
