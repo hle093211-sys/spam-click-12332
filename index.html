@@ -284,14 +284,14 @@
         // 1. TẠO PHÒNG
         function createRoom() {
             loading.style.display = 'block';
-            peer = new Peer(); // Tạo ID ngẫu nhiên
-            isHost = true;
-
-            peer.on('open', (id) => {
-                loading.style.display = 'none';
-                document.getElementById('room-id-display').value = id;
-                switchScreen('lobby');
-            });
+            peer = new Peer({
+    config: {
+        'iceServers': [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+    }
+});
 
             // Chờ người khác kết nối vào
             peer.on('connection', (connection) => {
@@ -308,12 +308,14 @@
                 return;
             }
             loading.style.display = 'block';
-            peer = new Peer();
-            
-            peer.on('open', () => {
-                conn = peer.connect(roomId);
-                setupConnection();
-            });
+            peer = new Peer({
+    config: {
+        'iceServers': [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+    }
+});
         }
 
         // 3. THIẾT LẬP KẾT NỐI VÀ LẮNG NGHE DỮ LIỆU P2P
