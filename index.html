@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Click Chiến - 2 Người Chung Máy</title>
+    <title>Click Chiến - Cloud Edition</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -18,6 +20,9 @@
             padding: 0;
             font-family: 'Orbitron', sans-serif;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        .noselect {
             user-select: none;
             -webkit-user-select: none;
         }
@@ -71,11 +76,30 @@
             text-transform: uppercase;
         }
 
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--neon-blue);
+            color: #fff;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1.2rem;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.2);
+            user-select: text !important;
+            -webkit-user-select: text !important;
+        }
+
+        input:focus { box-shadow: 0 0 20px var(--neon-blue); }
+
         .btn {
             width: 100%;
-            padding: 18px;
+            padding: 15px;
             margin: 10px 0;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 900;
             cursor: pointer;
             border: none;
@@ -93,71 +117,52 @@
 
         .btn-blue:active { background: var(--neon-blue); color: #000; transform: scale(0.95); }
 
-        /* Giao diện chia đôi màn hình chiến trực tiếp */
-        #game-screen {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            position: relative;
+        .btn-pink {
+            background: rgba(255, 0, 60, 0.1);
+            color: var(--neon-pink);
+            border: 2px solid var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.4) inset;
         }
 
-        .player-side {
-            flex: 1;
+        .btn-pink:active { background: var(--neon-pink); color: #fff; transform: scale(0.95); }
+
+        #game-screen {
+            width: 90%;
+            max-width: 800px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            position: relative;
-            height: 100%;
         }
 
-        .side-blue {
-            background: rgba(0, 243, 255, 0.03);
-            border-right: 2px dashed rgba(0, 243, 255, 0.2);
-        }
-
-        .side-pink {
-            background: rgba(255, 0, 60, 0.03);
-        }
-
-        .p-score {
-            font-size: 5rem;
-            font-weight: 900;
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
             margin-bottom: 20px;
         }
 
-        .side-blue .p-score { color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); }
-        .side-pink .p-score { color: var(--neon-pink); text-shadow: 0 0 20px var(--neon-pink); }
-
-        .big-click-btn {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            font-size: 2rem;
-            font-weight: 900;
-            cursor: pointer;
-            border: none;
-            touch-action: manipulation;
-            box-shadow: 0 0 25px currentColor;
+        .player-card {
+            width: 45%;
+            padding: 20px;
+            border-radius: 12px;
         }
 
-        .side-blue .big-click-btn { background: var(--neon-blue); color: #000; }
-        .side-pink .big-click-btn { background: var(--neon-pink); color: #fff; }
+        .my-card { border: 2px solid var(--neon-blue); box-shadow: 0 0 20px var(--neon-blue) inset; }
+        .enemy-card { border: 2px solid var(--neon-pink); box-shadow: 0 0 20px var(--neon-pink) inset; }
+        
+        .score { font-size: 3rem; font-weight: 900; margin-top: 10px; }
+        
+        #timer { font-size: 4.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 25px #fff; margin: 30px 0; }
 
-        .big-click-btn:active { transform: scale(0.9); }
-
-        #timer-box {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 2.5rem;
-            font-weight: 900;
-            background: rgba(0,0,0,0.7);
-            padding: 5px 20px;
-            border-radius: 10px;
-            border: 1px solid #fff;
+        #spam-btn {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            font-size: 3rem;
+            display: none;
+            touch-action: manipulation;
             z-index: 50;
+            text-shadow: 0 0 10px currentColor;
         }
 
         #overlay-msg {
@@ -171,65 +176,112 @@
             text-shadow: 0 0 40px var(--neon-pink);
             z-index: 100;
             pointer-events: none;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-align: center;
             width: 100%;
         }
 
         .hidden { display: none !important; }
 
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--neon-blue);
+            pointer-events: none;
+            animation: explode 0.6s ease-out forwards;
+            z-index: 99;
+        }
+
         .float-text {
             position: absolute;
-            font-size: 2rem;
+            color: #fff;
+            font-size: 2.5rem;
             font-weight: 900;
             pointer-events: none;
-            animation: floatUp 0.5s ease-out forwards;
+            animation: floatUp 0.6s ease-out forwards;
+            text-shadow: 0 0 15px var(--neon-blue);
             z-index: 99;
+        }
+
+        @keyframes explode {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
         }
 
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0) scale(1.5); }
-            100% { opacity: 0; transform: translateY(-70px) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(1); }
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
     </style>
 </head>
-<body>
+<body class="noselect">
 
     <div id="menu-screen" class="glass-panel">
         <h1>CLICK CHIẾN</h1>
-        <p style="margin-bottom: 25px; color: var(--neon-blue); font-weight: bold;">[ CHƠI CHUNG 1 MÁY ]</p>
-        <button type="button" class="btn btn-blue" onclick="startGame()">BẮT ĐẦU CHIẾN</button>
+        <p style="margin-bottom: 25px; color: var(--neon-blue); font-weight: bold;">[ CLOUD EDITION ]</p>
+        <button type="button" class="btn btn-blue" onclick="createRoom()">Tạo Phòng</button>
+        <div style="margin: 20px 0; color: rgba(255,255,255,0.5);">— HOẶC —</div>
+        <input type="text" id="join-id" placeholder="Nhập mã phòng..." autocomplete="off">
+        <button type="button" class="btn btn-pink" onclick="joinRoom()">Vào Phòng</button>
+        <div id="loading" style="margin-top:15px; color: #ff0; display:none; font-weight: bold;">Đang kết nối Cloud...</div>
+    </div>
+
+    <div id="lobby-screen" class="glass-panel hidden">
+        <h2 style="color: var(--neon-blue); margin-bottom: 15px;">MÃ PHÒNG</h2>
+        <input type="text" id="room-id-display" readonly onclick="this.select()">
+        <p style="margin-top: 15px; font-size: 1rem; color: #ccc;">Gửi mã này cho máy kia!</p>
+        <div style="margin-top: 25px; color: #fff; font-size: 1.1rem; animation: pulse 1s infinite;">Đang đợi máy kia vào phòng...</div>
     </div>
 
     <div id="game-screen" class="hidden">
-        <div id="timer-box">10.0</div>
-
-        <div class="player-side side-blue">
-            <h2 style="color: var(--neon-blue); margin-bottom: 10px;">PLAYER 1</h2>
-            <div class="p-score" id="score-1">0</div>
-            <button type="button" class="big-click-btn" ontouchstart="clickPlayer(1, event)" onmousedown="clickPlayer(1, event)">BẤM!</button>
+        <div class="scoreboard">
+            <div class="glass-panel player-card my-card">
+                <h3>BẠN</h3>
+                <div class="score" id="my-score">0</div>
+            </div>
+            <div class="glass-panel player-card enemy-card">
+                <h3>ĐỊCH</h3>
+                <div class="score" id="enemy-score">0</div>
+            </div>
         </div>
-
-        <div class="player-side side-pink">
-            <h2 style="color: var(--neon-pink); margin-bottom: 10px;">PLAYER 2</h2>
-            <div class="p-score" id="score-2">0</div>
-            <button type="button" class="big-click-btn" ontouchstart="clickPlayer(2, event)" onmousedown="clickPlayer(2, event)">BẤM!</button>
-        </div>
+        <div id="timer">10.0</div>
+        <button type="button" id="spam-btn" class="btn btn-blue">BĂM!!</button>
     </div>
 
     <div id="overlay-msg" class="hidden"></div>
 
     <script>
-        let score1 = 0;
-        let score2 = 0;
+        // Cấu hình Firebase công cộng dùng chung siêu mượt
+        const firebaseConfig = {
+            databaseURL: "https://click-chien-default-rtdb.firebaseio.com/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let roomId = "";
+        let myRole = ""; // 'host' hoặc 'guest'
+        let myScore = 0;
+        let enemyScore = 0;
         let gameTime = 10;
         let gameInterval = null;
-        let isPlaying = false;
+        let roomRef = null;
 
         const screens = {
             menu: document.getElementById('menu-screen'),
+            lobby: document.getElementById('lobby-screen'),
             game: document.getElementById('game-screen')
         };
         const overlay = document.getElementById('overlay-msg');
+        const spamBtn = document.getElementById('spam-btn');
+        const loading = document.getElementById('loading');
 
         function showOverlay(msg, dur) {
             overlay.textContent = msg;
@@ -237,12 +289,74 @@
             if(dur) setTimeout(() => overlay.classList.add('hidden'), dur);
         }
 
-        function startGame() {
-            screens.menu.classList.add('hidden');
-            screens.game.classList.remove('hidden');
-            
+        // TẠO PHÒNG TRÊN CLOUD
+        function createRoom() {
+            loading.style.display = 'block';
+            roomId = Math.floor(100000 + Math.random() * 900000).toString();
+            myRole = 'host';
+            roomRef = db.ref('rooms/' + roomId);
+
+            roomRef.set({
+                status: 'waiting',
+                hostScore: 0,
+                guestScore: 0
+            }).then(() => {
+                loading.style.display = 'none';
+                document.getElementById('room-id-display').value = roomId;
+                screens.menu.classList.add('hidden');
+                screens.lobby.classList.remove('hidden');
+
+                // Lắng nghe khi có khách vào phòng
+                roomRef.on('value', (snapshot) => {
+                    let data = snapshot.val();
+                    if (!data) return;
+                    enemyScore = data.guestScore || 0;
+                    document.getElementById('enemy-score').textContent = enemyScore;
+
+                    if (data.status === 'playing' && screens.game.classList.contains('hidden')) {
+                        screens.lobby.classList.add('hidden');
+                        screens.game.classList.remove('hidden');
+                        startMatch();
+                    }
+                });
+            });
+        }
+
+        // VÀO PHÒNG TỪ MÁY KHÁC
+        function joinRoom() {
+            roomId = document.getElementById('join-id').value.trim();
+            if(!roomId) return alert("Nhập mã phòng vào chứ bạn!");
+            myRole = 'guest';
+            roomRef = db.ref('rooms/' + roomId);
+            loading.style.display = 'block';
+
+            roomRef.once('value', (snapshot) => {
+                loading.style.display = 'none';
+                if(snapshot.exists()) {
+                    // Cập nhật trạng thái bắt đầu chơi
+                    roomRef.update({ status: 'playing' });
+                    screens.menu.classList.add('hidden');
+                    screens.game.classList.remove('hidden');
+                    
+                    // Lắng nghe điểm của host
+                    roomRef.on('value', (snap) => {
+                        let data = snap.val();
+                        if(data) {
+                            enemyScore = data.hostScore || 0;
+                            document.getElementById('enemy-score').textContent = enemyScore;
+                        }
+                    });
+
+                    startMatch();
+                } else {
+                    alert("Không tìm thấy phòng này! Kiểm tra lại mã xem.");
+                }
+            });
+        }
+
+        function startMatch() {
             let count = 3;
-            document.getElementById('timer-box').textContent = "SẴN SÀNG";
+            document.getElementById('timer').textContent = "SẴN SÀNG";
             showOverlay("SẴN SÀNG!", 1000);
 
             let countInterval = setInterval(() => {
@@ -251,38 +365,46 @@
                     count--;
                 } else {
                     clearInterval(countInterval);
-                    showOverlay("CHIẾN!", 600);
-                    runMatch();
+                    showOverlay("BĂM!!!", 800);
+                    runGamePlay();
                 }
             }, 1000);
         }
 
-        function runMatch() {
-            isPlaying = true;
-            score1 = 0; score2 = 0; gameTime = 10.0;
-            document.getElementById('score-1').textContent = '0';
-            document.getElementById('score-2').textContent = '0';
+        function runGamePlay() {
+            spamBtn.style.display = 'block';
+            myScore = 0; enemyScore = 0; gameTime = 10.0;
+            document.getElementById('my-score').textContent = myScore;
+            document.getElementById('enemy-score').textContent = enemyScore;
 
-            const timerEl = document.getElementById('timer-box');
+            const timerEl = document.getElementById('timer');
             gameInterval = setInterval(() => {
                 gameTime -= 0.1;
                 timerEl.textContent = gameTime.toFixed(1);
                 if (gameTime <= 0) {
                     clearInterval(gameInterval);
                     timerEl.textContent = "0.0";
-                    isPlaying = false;
+                    spamBtn.style.display = 'none';
                     endGame();
                 }
             }, 100);
         }
 
+        function updateCloudScore() {
+            if (!roomRef) return;
+            let updateData = {};
+            if (myRole === 'host') updateData.hostScore = myScore;
+            else updateData.guestScore = myScore;
+            roomRef.update(updateData);
+        }
+
         function endGame() {
             setTimeout(() => {
-                if (score1 > score2) {
-                    showOverlay("PLAYER 1 THẮNG! 🏆", 0);
+                if (myScore > enemyScore) {
+                    showOverlay("THẮNG ĐẬM! 🏆", 0);
                     overlay.style.color = "var(--neon-blue)";
-                } else if (score2 > score1) {
-                    showOverlay("PLAYER 2 THẮNG! 🏆", 0);
+                } else if (myScore < enemyScore) {
+                    showOverlay("THUA RỒI! 💀", 0);
                     overlay.style.color = "var(--neon-pink)";
                 } else {
                     showOverlay("HÒA NHAU! 🤝", 0);
@@ -292,32 +414,50 @@
             }, 500);
         }
 
-        function clickPlayer(playerNum, e) {
-            if (e.type === 'touchstart') e.preventDefault();
-            if (!isPlaying) return;
-
-            if (playerNum === 1) {
-                score1++;
-                document.getElementById('score-1').textContent = score1;
-            } else {
-                score2++;
-                document.getElementById('score-2').textContent = score2;
+        function spawnParticles(x, y) {
+            for(let i = 0; i < 6; i++) {
+                let p = document.createElement('div');
+                p.className = 'particle';
+                document.body.appendChild(p);
+                let angle = Math.random() * Math.PI * 2;
+                let velocity = 60 + Math.random() * 60;
+                p.style.left = (x - 5) + 'px';
+                p.style.top = (y - 5) + 'px';
+                p.style.setProperty('--tx', (Math.cos(angle) * velocity) + 'px');
+                p.style.setProperty('--ty', (Math.sin(angle) * velocity) + 'px');
+                setTimeout(() => p.remove(), 600);
             }
+        }
+
+        function handleSpam(e) {
+            if (e.type === 'touchstart') e.preventDefault();
+            if (gameTime <= 0) return;
+            
+            myScore++;
+            document.getElementById('my-score').textContent = myScore;
+            updateCloudScore(); // Gửi điểm lên cloud ngay lập tức
 
             let x = e.clientX || (e.touches && e.touches[0].clientX) || window.innerWidth / 2;
             let y = e.clientY || (e.touches && e.touches[0].clientY) || window.innerHeight / 2;
 
-            // Hiệu ứng +1 bay lên
+            spawnParticles(x, y);
+            
             const floatText = document.createElement('div');
             floatText.classList.add('float-text');
             floatText.textContent = '+1';
-            floatText.style.color = (playerNum === 1) ? 'var(--neon-blue)' : 'var(--neon-pink)';
-            floatText.style.left = (x - 15) + 'px';
-            floatText.style.top = (y - 30) + 'px';
+            floatText.style.left = (x - 20) + 'px';
+            floatText.style.top = (y - 40) + 'px';
             document.body.appendChild(floatText);
+            
+            document.body.classList.remove('shake');
+            void document.body.offsetWidth;
+            document.body.classList.add('shake');
 
-            setTimeout(() => floatText.remove(), 500);
+            setTimeout(() => floatText.remove(), 600);
         }
+
+        spamBtn.addEventListener('touchstart', handleSpam, { passive: false });
+        spamBtn.addEventListener('mousedown', handleSpam);
     </script>
 </body>
 </html>
